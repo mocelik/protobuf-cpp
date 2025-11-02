@@ -87,12 +87,25 @@ TEST(Varint, deserialize_varint) {
     std::ranges::for_each(max_values, [](const auto &value) {
         auto serialized = proto::Varint(value).serialize();
         auto deserialized = proto::Varint::deserialize(serialized);
-        ASSERT_EQ(deserialized, value);
+        ASSERT_EQ(deserialized.value(), value);
 
         serialized = proto::Varint(value + 1).serialize();
         deserialized = proto::Varint::deserialize(serialized);
-        ASSERT_EQ(deserialized, value + 1);
+        ASSERT_EQ(deserialized.value(), value + 1);
 
         // The 0 case is handled by the highest value wrapping around
     });
+}
+
+/**
+ * Verify that deserialized value contains correct number of bytes read
+ */
+TEST(Varint, deserialized_num_bytes_read) {
+    for (std::size_t num_bytes = 0; auto v : max_values) {
+        auto serialized = proto::Varint(v).serialize();
+        auto deserialized = proto::Varint::deserialize(serialized);
+        ASSERT_EQ(deserialized.value().value(), v);
+        ASSERT_EQ(deserialized.bytes_read(), serialized.size());
+        ASSERT_EQ(deserialized.bytes_read(), ++num_bytes);
+    }
 }

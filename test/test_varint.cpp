@@ -76,3 +76,23 @@ TEST(Varint, serialized_varint_encoded_value) {
         }
     });
 }
+
+/**
+ * Verify the deserializing a varint
+ * This test cases assumes that serializing is already tested and working
+ */
+TEST(Varint, deserialize_varint) {
+
+    // The maximum values for each varint size
+    std::ranges::for_each(max_values, [](const auto &value) {
+        auto serialized = proto::serialize_varint(value);
+        auto deserialized = proto::deserialize_varint(serialized);
+        ASSERT_EQ(deserialized, value);
+
+        serialized = proto::serialize_varint(value + 1);
+        deserialized = proto::deserialize_varint(serialized);
+        ASSERT_EQ(deserialized, value + 1);
+
+        // The 0 case is handled by the highest value wrapping around
+    });
+}

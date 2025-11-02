@@ -1,4 +1,4 @@
-#include "protobuf-cpp/varint.h"
+#include "protobuf-cpp/Varint.h"
 
 #include "gtest/gtest.h"
 
@@ -29,18 +29,18 @@ static_assert(max_values[9] == std::numeric_limits<std::uint64_t>::max(),
  */
 TEST(Varint, serialized_varint_encoded_size) {
 
-    ASSERT_EQ(proto::serialize_varint(0).size(), 1);
+    ASSERT_EQ(proto::Varint(0).serialize().size(), 1);
 
     std::ranges::for_each(max_values, [](const auto &value) {
         static int num_bytes = 1;
-        ASSERT_EQ(proto::serialize_varint(value).size(), num_bytes);
+        ASSERT_EQ(proto::Varint(value).serialize().size(), num_bytes);
         num_bytes++;
     });
 
     std::for_each(
         max_values.begin(), max_values.end() - 1, [](const auto &value) {
             static int num_bytes = 2;
-            ASSERT_EQ(proto::serialize_varint(value + 1).size(), num_bytes);
+            ASSERT_EQ(proto::Varint(value + 1).serialize().size(), num_bytes);
             num_bytes++;
         });
 }
@@ -53,14 +53,14 @@ TEST(Varint, serialized_varint_encoded_value) {
 
     // Check the 0-case
     {
-        auto serialized = proto::serialize_varint(0);
+        auto serialized = proto::Varint(0).serialize();
         ASSERT_EQ(serialized.size(), 1);
         ASSERT_EQ(serialized[0], std::byte{0});
     }
 
     // Check the transition points
     std::ranges::for_each(max_values, [](const auto value) constexpr {
-        auto serialized = proto::serialize_varint(value);
+        auto serialized = proto::Varint(value).serialize();
         std::for_each(
             serialized.begin(), serialized.end() - 1,
             [](const auto &byte) { ASSERT_EQ(byte, std::byte{0b1111'1111}); });
@@ -85,12 +85,12 @@ TEST(Varint, deserialize_varint) {
 
     // The maximum values for each varint size
     std::ranges::for_each(max_values, [](const auto &value) {
-        auto serialized = proto::serialize_varint(value);
-        auto deserialized = proto::deserialize_varint(serialized);
+        auto serialized = proto::Varint(value).serialize();
+        auto deserialized = proto::Varint::deserialize(serialized);
         ASSERT_EQ(deserialized, value);
 
-        serialized = proto::serialize_varint(value + 1);
-        deserialized = proto::deserialize_varint(serialized);
+        serialized = proto::Varint(value + 1).serialize();
+        deserialized = proto::Varint::deserialize(serialized);
         ASSERT_EQ(deserialized, value + 1);
 
         // The 0 case is handled by the highest value wrapping around

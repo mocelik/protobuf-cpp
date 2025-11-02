@@ -1,5 +1,5 @@
 add_library(protobuf-cpp SHARED
-  varint.cpp
+  Varint.cpp
 )
 
 target_include_directories(protobuf-cpp

@@ -13,7 +13,7 @@ endif()
 
 include(GoogleTest)
 
-add_executable(test_protobuf-cpp test_varint.cpp test_payload.cpp)
+add_executable(test_protobuf-cpp test_varint.cpp test_record.cpp)
 target_link_libraries(test_protobuf-cpp PRIVATE protobuf-cpp gtest_main)
 
 gtest_discover_tests(test_protobuf-cpp)

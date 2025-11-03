@@ -87,11 +87,11 @@ TEST(Varint, deserialize_varint) {
     std::ranges::for_each(max_values, [](const auto &value) {
         auto serialized = proto::Varint(value).serialize();
         auto deserialized = proto::Varint::deserialize(serialized);
-        ASSERT_EQ(deserialized.value(), value);
+        ASSERT_EQ(deserialized.value().value(), value);
 
         serialized = proto::Varint(value + 1).serialize();
         deserialized = proto::Varint::deserialize(serialized);
-        ASSERT_EQ(deserialized.value(), value + 1);
+        ASSERT_EQ(deserialized.value().value(), value + 1);
 
         // The 0 case is handled by the highest value wrapping around
     });

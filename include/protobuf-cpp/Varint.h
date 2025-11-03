@@ -11,7 +11,7 @@ namespace proto {
 
 class Varint {
   public:
-    constexpr Varint(std::uint64_t value) noexcept : m_value(value) {}
+    constexpr explicit Varint(std::uint64_t value) noexcept : m_value(value) {}
 
     [[nodiscard]] constexpr static Deserialized<Varint>
     deserialize(std::span<const std::byte> data) noexcept {
@@ -50,8 +50,6 @@ class Varint {
         } while (value != 0);
         return result;
     }
-
-    constexpr operator std::uint64_t() const noexcept { return m_value; }
 
   private:
     std::uint64_t m_value;

@@ -12,7 +12,7 @@ namespace proto {
 class Record {
   public:
     constexpr explicit Record(std::uint64_t field_number,
-                              Varint value = 0) noexcept
+                              Varint value = Varint{0}) noexcept
         : m_key((field_number << 3) |
                 static_cast<std::uint64_t>(WireType::VARINT)),
           m_value(value) {}
@@ -42,7 +42,7 @@ class Record {
 
     [[nodiscard]] constexpr Varint key() const noexcept { return m_key; }
     [[nodiscard]] constexpr Varint field_number() const noexcept {
-        return m_key >> 3;
+        return Varint{m_key.value() >> 3};
     }
     [[nodiscard]] constexpr WireType wire_type() const noexcept {
         return static_cast<WireType>(m_key.value() & 0x07);

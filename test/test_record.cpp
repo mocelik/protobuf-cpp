@@ -20,8 +20,8 @@ TEST(Record, construct_record_with_varint_payload) {
 
     ASSERT_EQ(deserialized_record.key().value(), 8);
     ASSERT_EQ(deserialized_record.wire_type(), proto::WireType::VARINT);
-    ASSERT_EQ(deserialized_record.field_number(), 1);
-    ASSERT_EQ(deserialized_record.value(), 150);
+    ASSERT_EQ(deserialized_record.field_number().value(), 1);
+    ASSERT_EQ(deserialized_record.value().value(), 150);
 
     // Re-serializing the same record should yield the same byte sequence
     ASSERT_EQ(deserialized_record.serialize(), serialized);

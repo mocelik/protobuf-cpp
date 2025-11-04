@@ -1,15 +1,23 @@
 #pragma once
 
 #include "Deserialized.h"
+#include "Fixint.h"
 #include "Varint.h"
 #include "WireType.h"
 #include "protobuf-cpp/Deserialized.h"
 
+#include <concepts>
 #include <cstdint>
+#include <type_traits>
 
 namespace proto {
 
-class Record {
+template <class T>
+concept Wirable = requires {
+    { T::k_wire_type } -> std::convertible_to<WireType>;
+};
+
+template <Wirable Type> class Record {
   public:
     constexpr explicit Record(std::uint64_t field_number,
                               Varint value = Varint{0}) noexcept

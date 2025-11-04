@@ -1,10 +1,11 @@
+#include "protobuf-cpp/Varint.h"
 #include <protobuf-cpp/Record.h>
 
 #include "gtest/gtest.h"
 
 TEST(Record, construct_record_with_varint_payload) {
     proto::Varint payload{150};
-    proto::Record record{1, payload};
+    proto::Record<proto::Varint> record(1, payload);
 
     ASSERT_EQ(payload.value(), 150);
 
@@ -14,7 +15,7 @@ TEST(Record, construct_record_with_varint_payload) {
     ASSERT_EQ(serialized[1], std::byte{0x96}); // payload
     ASSERT_EQ(serialized[2], std::byte{0x01}); // payload
 
-    auto deserialized = proto::Record::deserialize(serialized);
+    auto deserialized = proto::Record<proto::Varint>::deserialize(serialized);
     ASSERT_EQ(deserialized.bytes_read(), serialized.size());
     auto deserialized_record = deserialized.value();
 

@@ -5,7 +5,7 @@
 # Objectives
 - [x] Encode/decode Varint (variable size integer)
 - [x] Encode/decode Record
-- [ ] Encode/decode fixed-size integers and floats
+- [X] Encode/decode fixed-size integers and floats
 - [ ] Encode/decode arbitrary byte sequence
 - [ ] Encode/decode other Records
 - [ ] Verify compatibility with generated protobuf serialization

@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstdint>
+
 namespace proto {
-enum class WireType {
+enum class WireType : std::uint8_t {
     VARINT = 0,  // int32, int64, uint32, uint64, sint32, sint64, bool, enum
     FIXED64 = 1, // fixed64, sfixed64, double
     LEN = 2,     // string, bytes, embedded messages, packed repeated fields

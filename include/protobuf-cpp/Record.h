@@ -20,16 +20,16 @@ concept Wirable = requires {
 template <Wirable Type> class Record {
   public:
     constexpr explicit Record(std::uint64_t field_number,
-                              Varint value = Varint{0}) noexcept
+                              Type value = Type{}) noexcept
         : m_key((field_number << 3) |
-                static_cast<std::uint64_t>(WireType::VARINT)),
+                static_cast<std::uint64_t>(Type::k_wire_type)),
           m_value(value) {}
 
     [[nodiscard]] static constexpr Deserialized<Record>
     deserialize(std::span<const std::byte> data) {
         auto deserialized_key = Varint::deserialize(data);
         auto deserialized_value =
-            Varint::deserialize(data.subspan(deserialized_key.bytes_read()));
+            Type::deserialize(data.subspan(deserialized_key.bytes_read()));
 
         return Deserialized<Record>{Record{
                                         deserialized_key.value().value() >> 3,
@@ -55,10 +55,10 @@ template <Wirable Type> class Record {
     [[nodiscard]] constexpr WireType wire_type() const noexcept {
         return static_cast<WireType>(m_key.value() & 0x07);
     }
-    [[nodiscard]] constexpr Varint value() const noexcept { return m_value; }
+    [[nodiscard]] constexpr Type value() const noexcept { return m_value; }
 
   private:
     Varint m_key;
-    Varint m_value;
+    Type m_value;
 };
 } // namespace proto

@@ -1,6 +1,8 @@
 #include "protobuf-cpp/Fixint.h"
 #include "protobuf-cpp/Varint.h"
+#include "protobuf-cpp/Varlen.h"
 #include "protobuf-cpp/WireType.h"
+#include <cstddef>
 #include <protobuf-cpp/Record.h>
 
 #include "gtest/gtest.h"
@@ -92,4 +94,34 @@ TEST(Record, construct_record_with_fixint64_payload) {
     ASSERT_EQ(deserialized_record.field_number().value(), field);
     ASSERT_EQ(deserialized_record.wire_type(), proto::WireType::FIXED64);
     ASSERT_EQ(deserialized_record.value().value(), value);
+}
+
+TEST(Record, construct_record_with_varlen_payload) {
+    std::vector<std::byte> value = {std::byte{0}, std::byte{0xff},
+                                    std::byte{0xaa}, std::byte{0x0f}};
+    constexpr auto field = 1;
+    constexpr auto wire_type = proto::WireType::LEN;
+    constexpr auto key = (field << 3) | static_cast<std::uint64_t>(wire_type);
+
+    proto::Varlen payload(value);
+    proto::Record record(field, payload);
+    ASSERT_TRUE(std::ranges::equal(payload.value(), value));
+
+    auto serialized = record.serialize();
+    ASSERT_EQ(serialized.size(), 6);
+    ASSERT_EQ(serialized[0], std::byte{key}); // key
+    ASSERT_EQ(serialized[1],
+              std::byte(value.size())); // varint - length of data - 4
+    ASSERT_EQ(serialized[2], value[0]);
+    ASSERT_EQ(serialized[3], value[1]);
+    ASSERT_EQ(serialized[4], value[2]);
+    ASSERT_EQ(serialized[5], value[3]);
+
+    auto deserialized = proto::Record<proto::Varlen>::deserialize(serialized);
+    ASSERT_EQ(deserialized.bytes_read(), serialized.size());
+    auto deserialized_record = deserialized.value();
+    ASSERT_EQ(deserialized_record.key().value(), key);
+    ASSERT_EQ(deserialized_record.field_number().value(), field);
+    ASSERT_EQ(deserialized_record.wire_type(), proto::WireType::LEN);
+    ASSERT_TRUE(std::ranges::equal(deserialized_record.value().value(), value));
 }

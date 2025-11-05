@@ -14,6 +14,8 @@ class Varlen {
   public:
     static constexpr WireType k_wire_type = WireType::LEN;
 
+    constexpr Varlen() = default;
+
     constexpr explicit Varlen(std::vector<std::byte> value) noexcept
         : m_value(std::move(value)) {}
 

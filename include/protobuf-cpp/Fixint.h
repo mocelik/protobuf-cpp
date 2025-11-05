@@ -33,6 +33,7 @@ template <typename NumericType> class Fixint {
     static constexpr WireType k_wire_type =
         kfixed_size == 4 ? WireType::FIXED32 : WireType::FIXED64;
 
+    constexpr Fixint() = default;
     constexpr explicit Fixint(NumericType value) noexcept : m_value(value) {}
 
     [[nodiscard]] static Deserialized<Fixint>
@@ -60,6 +61,6 @@ template <typename NumericType> class Fixint {
     }
 
   private:
-    NumericType m_value;
+    NumericType m_value{};
 };
 } // namespace proto

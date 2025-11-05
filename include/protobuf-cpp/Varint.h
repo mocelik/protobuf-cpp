@@ -14,6 +14,7 @@ class Varint {
   public:
     static constexpr WireType k_wire_type = WireType::VARINT;
 
+    constexpr Varint() = default;
     constexpr explicit Varint(std::uint64_t value) noexcept : m_value(value) {}
 
     [[nodiscard]] constexpr static Deserialized<Varint>
@@ -56,7 +57,7 @@ class Varint {
     }
 
   private:
-    std::uint64_t m_value;
+    std::uint64_t m_value{};
 };
 
 } // namespace proto

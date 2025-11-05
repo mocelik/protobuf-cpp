@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Deserialized.h"
+#include "Field.h"
 #include "Fixint.h"
+#include "Key.h"
 #include "Varint.h"
 #include "WireType.h"
 #include "protobuf-cpp/Deserialized.h"
@@ -19,20 +21,24 @@ concept Wirable = requires {
 
 template <Wirable Type> class Record {
   public:
-    constexpr explicit Record(std::uint64_t field_number,
-                              Type value = Type{}) noexcept
-        : m_key((field_number << 3) |
-                static_cast<std::uint64_t>(Type::k_wire_type)),
-          m_value(value) {}
+    constexpr explicit Record(Key key, Type value = Type{}) noexcept
+        : m_key(key), m_value(value) {}
+
+    constexpr explicit Record(Field field, Type value = Type{}) noexcept
+        : m_key(field, Type::k_wire_type), m_value(value) {}
 
     [[nodiscard]] static constexpr Deserialized<Record>
     deserialize(std::span<const std::byte> data) {
         auto deserialized_key = Varint::deserialize(data);
+        if (deserialized_key.num_bytes_read == 0) {
+            return Deserialized<Record>{Record{Field{}, Type{}}, 0};
+        }
+
         auto deserialized_value =
             Type::deserialize(data.subspan(deserialized_key.num_bytes_read));
 
         return Deserialized<Record>{Record{
-                                        deserialized_key.value.value() >> 3,
+                                        Key{deserialized_key.value},
                                         deserialized_value.value,
                                     },
                                     deserialized_key.num_bytes_read +
@@ -40,7 +46,7 @@ template <Wirable Type> class Record {
     }
 
     [[nodiscard]] constexpr std::vector<std::byte> serialize() const {
-        auto serialized_key = m_key.serialize();
+        auto serialized_key = Varint{m_key.value()}.serialize();
         auto serialized_value = m_value.serialize();
 
         serialized_key.insert(serialized_key.end(), serialized_value.begin(),
@@ -48,17 +54,17 @@ template <Wirable Type> class Record {
         return serialized_key;
     }
 
-    [[nodiscard]] constexpr Varint key() const noexcept { return m_key; }
-    [[nodiscard]] constexpr Varint field_number() const noexcept {
-        return Varint{m_key.value() >> 3};
+    [[nodiscard]] constexpr Key key() const noexcept { return m_key; }
+    [[nodiscard]] constexpr Field field_number() const noexcept {
+        return m_key.field_number();
     }
     [[nodiscard]] constexpr WireType wire_type() const noexcept {
-        return static_cast<WireType>(m_key.value() & 0x07);
+        return m_key.wire_type();
     }
     [[nodiscard]] constexpr Type value() const noexcept { return m_value; }
 
   private:
-    Varint m_key;
+    Key m_key;
     Type m_value;
 };
 } // namespace proto

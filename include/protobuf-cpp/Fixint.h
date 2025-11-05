@@ -40,7 +40,7 @@ template <typename NumericType> class Fixint {
     deserialize(std::span<const std::byte> data) noexcept {
 
         if (data.size() < kfixed_size) { // error: not enough data
-            return Deserialized(Fixint{0}, 0);
+            return Deserialized(Fixint{}, 0);
         }
         NumericType value;
         std::memcpy(&value, data.data(), kfixed_size);

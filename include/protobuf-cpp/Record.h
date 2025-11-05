@@ -17,6 +17,8 @@ namespace proto {
 template <class T>
 concept Wirable = requires {
     { T::k_wire_type } -> std::convertible_to<WireType>;
+    { std::declval<T>().serialize() };
+    { T::deserialize(std::declval<std::span<const std::byte>>()) };
 };
 
 template <Wirable Type> class Record {

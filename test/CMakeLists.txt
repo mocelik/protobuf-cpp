@@ -13,7 +13,8 @@ endif()
 
 include(GoogleTest)
 
-add_executable(test_mylib test_stub.cpp)
-target_link_libraries(test_mylib PRIVATE stub_lib gtest_main)
+file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS "*.cpp")
+add_executable(test_protobuf-cpp ${TEST_SOURCES})
+target_link_libraries(test_protobuf-cpp PRIVATE protobuf-cpp gtest_main)
 
-gtest_discover_tests(test_mylib)
+gtest_discover_tests(test_protobuf-cpp)

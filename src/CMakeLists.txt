@@ -1,10 +1,10 @@
-add_library(stub_lib SHARED
-  stub.cpp
+add_library(protobuf-cpp SHARED
+  Varint.cpp
 )
 
-target_include_directories(stub_lib
+target_include_directories(protobuf-cpp
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
-target_compile_features(stub_lib PUBLIC cxx_std_17)
+target_compile_features(protobuf-cpp PUBLIC cxx_std_23)

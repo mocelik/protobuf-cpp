@@ -8,8 +8,8 @@
 TEST(Record, construct_record_with_varint_payload) {
     constexpr auto value = 150;
     constexpr auto field = 1;
-    constexpr auto key =
-        (field << 3) | static_cast<std::uint64_t>(proto::WireType::VARINT);
+    constexpr auto wire_type = proto::WireType::VARINT;
+    constexpr auto key = (field << 3) | static_cast<std::uint64_t>(wire_type);
     proto::Varint payload{value};
     proto::Record record(field, payload);
 
@@ -26,7 +26,7 @@ TEST(Record, construct_record_with_varint_payload) {
     auto deserialized_record = deserialized.value();
 
     ASSERT_EQ(deserialized_record.key().value(), key);
-    ASSERT_EQ(deserialized_record.wire_type(), proto::WireType::VARINT);
+    ASSERT_EQ(deserialized_record.wire_type(), wire_type);
     ASSERT_EQ(deserialized_record.field_number().value(), field);
     ASSERT_EQ(deserialized_record.value().value(), value);
 
@@ -37,8 +37,8 @@ TEST(Record, construct_record_with_varint_payload) {
 TEST(Record, construct_record_with_fixint32_payload) {
     constexpr auto value = 150;
     constexpr auto field = 1;
-    constexpr auto key =
-        (field << 3) | static_cast<std::uint64_t>(proto::WireType::FIXED32);
+    constexpr auto wire_type = proto::WireType::FIXED32;
+    constexpr auto key = (field << 3) | static_cast<std::uint64_t>(wire_type);
 
     proto::Fixint<std::uint32_t> payload{value};
     proto::Record record(field, payload);
@@ -58,6 +58,38 @@ TEST(Record, construct_record_with_fixint32_payload) {
     auto deserialized_record = deserialized.value();
     ASSERT_EQ(deserialized_record.key().value(), key);
     ASSERT_EQ(deserialized_record.field_number().value(), field);
-    ASSERT_EQ(deserialized_record.wire_type(), proto::WireType::FIXED32);
+    ASSERT_EQ(deserialized_record.wire_type(), wire_type);
+    ASSERT_EQ(deserialized_record.value().value(), value);
+}
+
+TEST(Record, construct_record_with_fixint64_payload) {
+    constexpr auto value = 150;
+    constexpr auto field = 1;
+    constexpr auto wire_type = proto::WireType::FIXED64;
+    constexpr auto key = (field << 3) | static_cast<std::uint64_t>(wire_type);
+
+    proto::Fixint<std::uint64_t> payload{value};
+    proto::Record record(field, payload);
+    ASSERT_EQ(payload.value(), value);
+
+    auto serialized = record.serialize();
+    ASSERT_EQ(serialized.size(), 9);
+    ASSERT_EQ(serialized[0], std::byte{key});  // key
+    ASSERT_EQ(serialized[1], std::byte{0x96}); // byte[0] of 150 fixint
+    ASSERT_EQ(serialized[2], std::byte{0x00}); // byte[1] of 150 fixint
+    ASSERT_EQ(serialized[3], std::byte{0x00}); // byte[2] of 150 fixint
+    ASSERT_EQ(serialized[4], std::byte{0x00}); // byte[3] of 150 fixint
+    ASSERT_EQ(serialized[5], std::byte{0x00}); // byte[4] of 150 fixint
+    ASSERT_EQ(serialized[6], std::byte{0x00}); // byte[5] of 150 fixint
+    ASSERT_EQ(serialized[7], std::byte{0x00}); // byte[6] of 150 fixint
+    ASSERT_EQ(serialized[8], std::byte{0x00}); // byte[7] of 150 fixint
+
+    auto deserialized =
+        proto::Record<proto::Fixint<std::uint64_t>>::deserialize(serialized);
+    ASSERT_EQ(deserialized.bytes_read(), serialized.size());
+    auto deserialized_record = deserialized.value();
+    ASSERT_EQ(deserialized_record.key().value(), key);
+    ASSERT_EQ(deserialized_record.field_number().value(), field);
+    ASSERT_EQ(deserialized_record.wire_type(), proto::WireType::FIXED64);
     ASSERT_EQ(deserialized_record.value().value(), value);
 }

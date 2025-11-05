@@ -7,6 +7,7 @@
 #include <limits>
 #include <ranges>
 
+namespace {
 // Precomputed maximum values for each possible varint size
 // equation: max_values[i] = (1 << (7 * (i + 1))) - 1
 constexpr std::array<std::uint64_t, 10> max_values = {
@@ -21,8 +22,8 @@ constexpr std::array<std::uint64_t, 10> max_values = {
     0x7fff'ffff'ffff'ffffULL, // 9 bytes
     0xffff'ffff'ffff'ffffULL  // 10 bytes
 };
-static_assert(max_values[9] == std::numeric_limits<std::uint64_t>::max(),
-              "Max value for 10-byte varint should be uint64_t max");
+static_assert(max_values[9] == std::numeric_limits<std::uint64_t>::max());
+} // namespace
 
 /**
  * Verify that encoding a varint produces the expected number of bytes.

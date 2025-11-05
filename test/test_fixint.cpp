@@ -8,23 +8,6 @@
 #include <numbers>
 #include <ranges>
 
-// Precomputed maximum values for each possible varint size
-// equation: max_values[i] = (1 << (7 * (i + 1))) - 1
-constexpr std::array<std::uint64_t, 10> max_values = {
-    0x0000'0000'0000'007fULL, // 1 byte
-    0x0000'0000'0000'3fffULL, // 2 bytes
-    0x0000'0000'001f'ffffULL, // 3 bytes
-    0x0000'0000'0fff'ffffULL, // 4 bytes
-    0x0000'0007'ffff'ffffULL, // 5 bytes
-    0x0000'03ff'ffff'ffffULL, // 6 bytes
-    0x0001'ffff'ffff'ffffULL, // 7 bytes
-    0x00ff'ffff'ffff'ffffULL, // 8 bytes
-    0x7fff'ffff'ffff'ffffULL, // 9 bytes
-    0xffff'ffff'ffff'ffffULL  // 10 bytes
-};
-static_assert(max_values[9] == std::numeric_limits<std::uint64_t>::max(),
-              "Max value for 10-byte varint should be uint64_t max");
-
 /**
  * Verify that encoding a Fixint only and always uses 4 bytes
  */
@@ -58,6 +41,20 @@ TEST(Fixint, serialize_deserialize_float) {
         auto deserialized = proto::Fixint<float>::deserialize(serialized);
         ASSERT_FLOAT_EQ(deserialized.value.value(), v);
         ASSERT_FLOAT_EQ(deserialized.num_bytes_read, sizeof(std::uint32_t));
+    }
+}
+
+TEST(Fixint, serialize_deserialize_double) {
+    auto test_values = {std::numeric_limits<double>::min(), .0,
+                        std::numeric_limits<double>::max(),
+                        std::numbers::pi_v<double>, std::numbers::e_v<double>};
+
+    for (auto v : test_values) {
+        proto::Fixint Fixint_original(v);
+        auto serialized = Fixint_original.serialize();
+        auto deserialized = proto::Fixint<double>::deserialize(serialized);
+        ASSERT_DOUBLE_EQ(deserialized.value.value(), v);
+        ASSERT_DOUBLE_EQ(deserialized.num_bytes_read, sizeof(std::uint64_t));
     }
 }
 

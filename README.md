@@ -6,7 +6,7 @@
 - [x] Encode/decode Varint (variable size integer)
 - [x] Encode/decode Record
 - [X] Encode/decode fixed-size integers and floats
-- [ ] Encode/decode arbitrary byte sequence
+- [X] Encode/decode arbitrary byte sequence
 - [ ] Encode/decode other Records
 - [ ] Verify compatibility with generated protobuf serialization
 - [ ] Handle malformed inputs during deserialization
@@ -16,3 +16,7 @@
 - [ ] Generate protobuf syntax `.pb` files from types using reflection
 - [ ] Benchmark against code generated with `protoc`
 - [ ] Allow compile-time checks for whether type A is compatible with type B
+
+# Limitations
+- Only little-endian platforms are supported
+- Floats and doubles are only supported if the native type is IEEE 754 compliant

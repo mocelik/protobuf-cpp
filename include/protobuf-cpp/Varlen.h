@@ -28,10 +28,10 @@ class Varlen {
     [[nodiscard]] constexpr static Deserialized<Varlen>
     deserialize(std::span<const std::byte> data) {
         const auto deserialized_length = Varint::deserialize(data);
-        const auto length = deserialized_length.value().value();
+        const auto length = deserialized_length.value.value();
 
         auto remaining_data =
-            data | std::views::drop(deserialized_length.bytes_read());
+            data | std::views::drop(deserialized_length.num_bytes_read);
 
         if (remaining_data.size() < length) {
             // Not enough data
@@ -39,7 +39,7 @@ class Varlen {
         }
 
         return Deserialized(Varlen{remaining_data},
-                            deserialized_length.bytes_read() +
+                            deserialized_length.num_bytes_read +
                                 remaining_data.size());
     }
 

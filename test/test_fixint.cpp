@@ -42,8 +42,8 @@ TEST(Fixint, serialize_deserialize_uint32) {
         auto serialized = Fixint_original.serialize();
         auto deserialized =
             proto::Fixint<std::uint32_t>::deserialize(serialized);
-        ASSERT_EQ(deserialized.value().value(), v);
-        ASSERT_EQ(deserialized.bytes_read(), sizeof(std::uint32_t));
+        ASSERT_EQ(deserialized.value.value(), v);
+        ASSERT_EQ(deserialized.num_bytes_read, sizeof(std::uint32_t));
     }
 }
 
@@ -56,8 +56,8 @@ TEST(Fixint, serialize_deserialize_float) {
         proto::Fixint Fixint_original(v);
         auto serialized = Fixint_original.serialize();
         auto deserialized = proto::Fixint<float>::deserialize(serialized);
-        ASSERT_FLOAT_EQ(deserialized.value().value(), v);
-        ASSERT_FLOAT_EQ(deserialized.bytes_read(), sizeof(std::uint32_t));
+        ASSERT_FLOAT_EQ(deserialized.value.value(), v);
+        ASSERT_FLOAT_EQ(deserialized.num_bytes_read, sizeof(std::uint32_t));
     }
 }
 
@@ -78,7 +78,7 @@ TEST(Fixint, serialize_deserialize_uint64) {
         auto serialized = Fixint_original.serialize();
         auto deserialized =
             proto::Fixint<std::uint64_t>::deserialize(serialized);
-        ASSERT_EQ(deserialized.value().value(), v);
-        ASSERT_EQ(deserialized.bytes_read(), sizeof(std::uint64_t));
+        ASSERT_EQ(deserialized.value.value(), v);
+        ASSERT_EQ(deserialized.num_bytes_read, sizeof(std::uint64_t));
     }
 }

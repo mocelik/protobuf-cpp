@@ -29,14 +29,14 @@ template <Wirable Type> class Record {
     deserialize(std::span<const std::byte> data) {
         auto deserialized_key = Varint::deserialize(data);
         auto deserialized_value =
-            Type::deserialize(data.subspan(deserialized_key.bytes_read()));
+            Type::deserialize(data.subspan(deserialized_key.num_bytes_read));
 
         return Deserialized<Record>{Record{
-                                        deserialized_key.value().value() >> 3,
-                                        deserialized_value.value(),
+                                        deserialized_key.value.value() >> 3,
+                                        deserialized_value.value,
                                     },
-                                    deserialized_key.bytes_read() +
-                                        deserialized_value.bytes_read()};
+                                    deserialized_key.num_bytes_read +
+                                        deserialized_value.num_bytes_read};
     }
 
     [[nodiscard]] constexpr std::vector<std::byte> serialize() const {

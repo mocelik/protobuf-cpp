@@ -24,8 +24,8 @@ TEST(Record, construct_record_with_varint_payload) {
     ASSERT_EQ(serialized[2], std::byte{0x01}); // byte[1] of 150 varint
 
     auto deserialized = proto::Record<proto::Varint>::deserialize(serialized);
-    ASSERT_EQ(deserialized.bytes_read(), serialized.size());
-    auto deserialized_record = deserialized.value();
+    ASSERT_EQ(deserialized.num_bytes_read, serialized.size());
+    auto deserialized_record = deserialized.value;
 
     ASSERT_EQ(deserialized_record.key().value(), key);
     ASSERT_EQ(deserialized_record.wire_type(), wire_type);
@@ -56,8 +56,8 @@ TEST(Record, construct_record_with_fixint32_payload) {
 
     auto deserialized =
         proto::Record<proto::Fixint<std::uint32_t>>::deserialize(serialized);
-    ASSERT_EQ(deserialized.bytes_read(), serialized.size());
-    auto deserialized_record = deserialized.value();
+    ASSERT_EQ(deserialized.num_bytes_read, serialized.size());
+    auto deserialized_record = deserialized.value;
     ASSERT_EQ(deserialized_record.key().value(), key);
     ASSERT_EQ(deserialized_record.field_number().value(), field);
     ASSERT_EQ(deserialized_record.wire_type(), wire_type);
@@ -88,8 +88,8 @@ TEST(Record, construct_record_with_fixint64_payload) {
 
     auto deserialized =
         proto::Record<proto::Fixint<std::uint64_t>>::deserialize(serialized);
-    ASSERT_EQ(deserialized.bytes_read(), serialized.size());
-    auto deserialized_record = deserialized.value();
+    ASSERT_EQ(deserialized.num_bytes_read, serialized.size());
+    auto deserialized_record = deserialized.value;
     ASSERT_EQ(deserialized_record.key().value(), key);
     ASSERT_EQ(deserialized_record.field_number().value(), field);
     ASSERT_EQ(deserialized_record.wire_type(), proto::WireType::FIXED64);
@@ -118,8 +118,8 @@ TEST(Record, construct_record_with_varlen_payload) {
     ASSERT_EQ(serialized[5], value[3]);
 
     auto deserialized = proto::Record<proto::Varlen>::deserialize(serialized);
-    ASSERT_EQ(deserialized.bytes_read(), serialized.size());
-    auto deserialized_record = deserialized.value();
+    ASSERT_EQ(deserialized.num_bytes_read, serialized.size());
+    auto deserialized_record = deserialized.value;
     ASSERT_EQ(deserialized_record.key().value(), key);
     ASSERT_EQ(deserialized_record.field_number().value(), field);
     ASSERT_EQ(deserialized_record.wire_type(), proto::WireType::LEN);

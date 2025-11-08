@@ -1,5 +1,10 @@
 # protobuf-cpp
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CMake Build & Test](https://github.com/mocelik/protobuf-cpp/actions/workflows/cmake.yml/badge.svg)](https://github.com/mocelik/protobuf-cpp/actions/workflows/cmake.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mocelik_protobuf-cpp&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mocelik_protobuf-cpp)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mocelik_protobuf-cpp&metric=coverage)](https://sonarcloud.io/summary/new_code?id=mocelik_protobuf-cpp)
+
 [Protocol Buffers](https://protobuf.dev/) are an extensible binary serialization format. While Google provides a protocol buffer compiler that generates source code based on a protobuf (`.pb`) file, I believe reflection in C++26 allows us to remove the need for generated source code altogether. This project aims to implement protocol buffer serialization and deserializing compatible with Google's solution.
 
 # Objectives

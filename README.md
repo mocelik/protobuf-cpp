@@ -12,10 +12,11 @@
 - [x] Encode/decode Record
 - [X] Encode/decode fixed-size integers and floats
 - [X] Encode/decode arbitrary byte sequence
-- [ ] Encode/decode other Records
-- [ ] Verify compatibility with generated protobuf serialization
-- [ ] Handle malformed inputs during deserialization
 - [ ] Encode/decode trivially-copyable structs with only scalar members using manual mapping to custom types
+- [ ] Verify compatibility of trivially copyable structs with generated protobuf serialization
+- [ ] Encode/decode nested and complex structs using manual mapping to custom types
+- [ ] Verify compatibility of nested structs with generated protobuf serialization
+- [ ] Handle malformed inputs during deserialization
 - [ ] Encode/decode trivially-copyable types using reflection
 - [ ] Encode/decode trivially-copyable nested structs using reflection
 - [ ] Generate protobuf syntax `.pb` files from types using reflection

@@ -2,10 +2,11 @@
 #include "protobuf-cpp/Varint.h"
 #include "protobuf-cpp/Varlen.h"
 #include "protobuf-cpp/WireType.h"
-#include <cstddef>
 #include <protobuf-cpp/Record.h>
 
 #include "gtest/gtest.h"
+
+#include <cstddef>
 
 TEST(Record, construct_record_with_varint_payload) {
     constexpr auto value = 150;

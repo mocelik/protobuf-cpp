@@ -1,4 +1,5 @@
 #include "protobuf-cpp/Fixint.h"
+#include "protobuf-cpp/Utils.h"
 
 #include "gtest/gtest.h"
 
@@ -11,9 +12,18 @@
 /**
  * Verify that encoding a Fixint only and always uses 4 bytes
  */
-TEST(Fixint, serialized_varint_encoded_size) {
-    ASSERT_EQ(proto::Fixint<std::uint32_t>(0).serialize().size(),
-              sizeof(std::uint32_t));
+TEST(Fixint, serialized_fixint_encoded_size) {
+    ASSERT_EQ(proto::Fixint<std::int8_t>::size(), 4);
+    ASSERT_EQ(proto::Fixint<std::int16_t>::size(), 4);
+    ASSERT_EQ(proto::Fixint<std::int32_t>::size(), 4);
+    ASSERT_EQ(proto::Fixint<std::uint8_t>::size(), 4);
+    ASSERT_EQ(proto::Fixint<std::uint16_t>::size(), 4);
+    ASSERT_EQ(proto::Fixint<std::uint32_t>::size(), 4);
+    ASSERT_EQ(proto::Fixint<float>::size(), 4);
+
+    ASSERT_EQ(proto::Fixint<std::int64_t>::size(), 8);
+    ASSERT_EQ(proto::Fixint<std::uint64_t>::size(), 8);
+    ASSERT_EQ(proto::Fixint<double>::size(), 8);
 }
 
 TEST(Fixint, serialize_deserialize_uint32) {
@@ -22,7 +32,7 @@ TEST(Fixint, serialize_deserialize_uint32) {
 
     for (auto v : test_values) {
         proto::Fixint Fixint_original(v);
-        auto serialized = Fixint_original.serialize();
+        auto serialized = proto::serialize(Fixint_original);
         auto deserialized =
             proto::Fixint<std::uint32_t>::deserialize(serialized);
         ASSERT_EQ(deserialized.value.value(), v);
@@ -37,7 +47,7 @@ TEST(Fixint, serialize_deserialize_float) {
 
     for (auto v : test_values) {
         proto::Fixint Fixint_original(v);
-        auto serialized = Fixint_original.serialize();
+        auto serialized = proto::serialize(Fixint_original);
         auto deserialized = proto::Fixint<float>::deserialize(serialized);
         ASSERT_FLOAT_EQ(deserialized.value.value(), v);
         ASSERT_FLOAT_EQ(deserialized.num_bytes_read, sizeof(std::uint32_t));
@@ -51,7 +61,7 @@ TEST(Fixint, serialize_deserialize_double) {
 
     for (auto v : test_values) {
         proto::Fixint Fixint_original(v);
-        auto serialized = Fixint_original.serialize();
+        auto serialized = proto::serialize(Fixint_original);
         auto deserialized = proto::Fixint<double>::deserialize(serialized);
         ASSERT_DOUBLE_EQ(deserialized.value.value(), v);
         ASSERT_DOUBLE_EQ(deserialized.num_bytes_read, sizeof(std::uint64_t));
@@ -72,7 +82,7 @@ TEST(Fixint, serialize_deserialize_uint64) {
 
     for (auto v : test_values) {
         proto::Fixint Fixint_original(v);
-        auto serialized = Fixint_original.serialize();
+        auto serialized = proto::serialize(Fixint_original);
         auto deserialized =
             proto::Fixint<std::uint64_t>::deserialize(serialized);
         ASSERT_EQ(deserialized.value.value(), v);

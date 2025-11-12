@@ -54,12 +54,6 @@ template <typename NumericType> class Fixint {
 
     constexpr void set_value(NumericType value) noexcept { m_value = value; }
 
-    [[nodiscard]] std::array<std::byte, kfixed_size> serialize() const {
-        std::array<std::byte, kfixed_size> result;
-        serialize(result);
-        return result;
-    }
-
     constexpr std::size_t serialize(std::span<std::byte> buffer) const {
         if (buffer.size() < size()) {
             throw std::runtime_error("Buffer too small to serialize Fixint");
@@ -73,7 +67,7 @@ template <typename NumericType> class Fixint {
         return kfixed_size;
     }
 
-    [[nodiscard]] constexpr std::size_t size() const noexcept {
+    [[nodiscard]] static constexpr std::size_t size() noexcept {
         return kfixed_size;
     }
 

@@ -46,14 +46,6 @@ class Varlen {
                                 remaining_data.size());
     }
 
-    [[nodiscard]] constexpr std::vector<std::byte> serialize() const {
-        Varint length_varint{m_value.size()};
-        std::vector<std::byte> serialized;
-        serialized.resize(Varint{m_value.size()}.size() + m_value.size());
-        serialize(serialized);
-        return serialized;
-    }
-
     constexpr std::size_t serialize(std::span<std::byte> buffer) const {
         if (buffer.size() < size()) {
             throw std::runtime_error("Buffer too small to serialize Varlen");

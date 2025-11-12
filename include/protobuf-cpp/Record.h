@@ -19,7 +19,6 @@ namespace proto {
 template <class T>
 concept Wirable = requires {
     { T::k_wire_type } -> std::convertible_to<WireType>;
-    { std::declval<T>().serialize() };
     { T::deserialize(std::declval<std::span<const std::byte>>()) };
 };
 
@@ -47,13 +46,6 @@ template <Wirable Type> class Record {
                                     },
                                     deserialized_key.num_bytes_read +
                                         deserialized_value.num_bytes_read};
-    }
-
-    [[nodiscard]] constexpr std::vector<std::byte> serialize() const {
-        std::vector<std::byte> buffer;
-        buffer.resize(size());
-        serialize(buffer);
-        return buffer;
     }
 
     constexpr std::size_t serialize(std::span<std::byte> buffer) const {

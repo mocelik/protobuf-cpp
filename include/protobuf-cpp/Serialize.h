@@ -2,6 +2,7 @@
 
 #include "Field.h"
 #include "Record.h"
+#include "Utils.h"
 #include "Varint.h"
 
 #include <cstddef>
@@ -14,7 +15,7 @@ inline std::vector<std::byte> serialize_primitive(Field field,
                                                   const std::uint32_t &obj) {
     proto::Varint varint{obj};
     proto::Record record(field, varint);
-    return record.serialize();
+    return proto::serialize(record);
 }
 
 template <typename T> std::vector<std::byte> serialize(const T &obj) {

@@ -1,10 +1,11 @@
-#include "protobuf-cpp/Fixint.h"
-#include "protobuf-cpp/Varint.h"
-#include "protobuf-cpp/Varlen.h"
-#include "protobuf-cpp/WireType.h"
+#include <protobuf-cpp/Fixint.h>
 #include <protobuf-cpp/Record.h>
+#include <protobuf-cpp/Utils.h>
+#include <protobuf-cpp/Varint.h>
+#include <protobuf-cpp/Varlen.h>
+#include <protobuf-cpp/WireType.h>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include <cstddef>
 
@@ -18,7 +19,7 @@ TEST(Record, construct_record_with_varint_payload) {
 
     ASSERT_EQ(payload.value(), value);
 
-    auto serialized = record.serialize();
+    auto serialized = proto::serialize(record);
     ASSERT_EQ(serialized.size(), 3);
     ASSERT_EQ(serialized[0], std::byte(key.value())); // key
     ASSERT_EQ(serialized[1], std::byte{0x96});        // byte[0] of 150 varint
@@ -34,7 +35,7 @@ TEST(Record, construct_record_with_varint_payload) {
     ASSERT_EQ(deserialized_record.value().value(), value);
 
     // Re-serializing the same record should yield the same byte sequence
-    ASSERT_EQ(deserialized_record.serialize(), serialized);
+    ASSERT_EQ(proto::serialize(deserialized_record), serialized);
 }
 
 TEST(Record, construct_record_with_fixint32_payload) {
@@ -47,7 +48,7 @@ TEST(Record, construct_record_with_fixint32_payload) {
     proto::Record record(field, payload);
     ASSERT_EQ(payload.value(), value);
 
-    auto serialized = record.serialize();
+    auto serialized = proto::serialize(record);
     ASSERT_EQ(serialized.size(), 5);
     ASSERT_EQ(serialized[0], std::byte(key.value())); // key
     ASSERT_EQ(serialized[1], std::byte{0x96});        // byte[0] of 150 fixint
@@ -75,7 +76,7 @@ TEST(Record, construct_record_with_fixint64_payload) {
     proto::Record record(field, payload);
     ASSERT_EQ(payload.value(), value);
 
-    auto serialized = record.serialize();
+    auto serialized = proto::serialize(record);
     ASSERT_EQ(serialized.size(), 9);
     ASSERT_EQ(serialized[0], std::byte(key.value())); // key
     ASSERT_EQ(serialized[1], std::byte{0x96});        // byte[0] of 150 fixint
@@ -108,7 +109,7 @@ TEST(Record, construct_record_with_varlen_payload) {
     proto::Record record(field, payload);
     ASSERT_TRUE(std::ranges::equal(payload.value(), value));
 
-    auto serialized = record.serialize();
+    auto serialized = proto::serialize(record);
     ASSERT_EQ(serialized.size(), 6);
     ASSERT_EQ(serialized[0], std::byte(key.value())); // key
     ASSERT_EQ(serialized[1],

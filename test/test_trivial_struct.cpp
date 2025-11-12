@@ -1,8 +1,9 @@
 #include "TestTypes.h"
-#include "protobuf-cpp/Deserialize.h"
-#include "protobuf-cpp/Serialize.h"
 
-#include "gtest/gtest.h"
+#include <protobuf-cpp/Deserialize.h>
+#include <protobuf-cpp/Serialize.h>
+
+#include <gtest/gtest.h>
 
 TEST(TrivialStruct, singleint_serialize_deserialize) {
     static_assert(std::is_trivially_copyable_v<test::SingleInt>,

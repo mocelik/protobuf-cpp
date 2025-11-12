@@ -34,20 +34,13 @@ class Varint {
             }
             shift += 7;
         }
-        return Deserialized(Varint{result}, num_bytes_read);
+        return Deserialized{Varint{result}, num_bytes_read};
     }
 
     [[nodiscard]] constexpr std::uint64_t value() const noexcept {
         return m_value;
     }
     constexpr void set_value(std::uint64_t value) noexcept { m_value = value; }
-
-    [[nodiscard]] constexpr std::vector<std::byte> serialize() const {
-        std::vector<std::byte> buffer;
-        buffer.resize(size());
-        serialize(buffer);
-        return buffer;
-    }
 
     constexpr std::size_t serialize(std::span<std::byte> buffer) const {
         if (buffer.size() < size()) {

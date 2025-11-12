@@ -10,6 +10,8 @@
 
 #include <concepts>
 #include <cstdint>
+#include <ranges>
+#include <stdexcept>
 #include <type_traits>
 
 namespace proto {
@@ -48,12 +50,22 @@ template <Wirable Type> class Record {
     }
 
     [[nodiscard]] constexpr std::vector<std::byte> serialize() const {
-        auto serialized_key = Varint{m_key.value()}.serialize();
-        auto serialized_value = m_value.serialize();
+        std::vector<std::byte> buffer;
+        buffer.resize(size());
+        serialize(buffer);
+        return buffer;
+    }
 
-        serialized_key.insert(serialized_key.end(), serialized_value.begin(),
-                              serialized_value.end());
-        return serialized_key;
+    constexpr std::size_t serialize(std::span<std::byte> buffer) const {
+        if (buffer.size() < size()) {
+            throw std::runtime_error("Buffer too small to serialize Record");
+        }
+
+        Varint key_varint{m_key.value()};
+        auto num_bytes_written = key_varint.serialize(buffer);
+        num_bytes_written +=
+            m_value.serialize(buffer | std::views::drop(num_bytes_written));
+        return num_bytes_written;
     }
 
     [[nodiscard]] constexpr Key key() const noexcept { return m_key; }
@@ -64,6 +76,10 @@ template <Wirable Type> class Record {
         return m_key.wire_type();
     }
     [[nodiscard]] constexpr Type value() const noexcept { return m_value; }
+
+    [[nodiscard]] constexpr std::size_t size() const noexcept {
+        return Varint{m_key.value()}.size() + m_value.size();
+    }
 
   private:
     Key m_key;

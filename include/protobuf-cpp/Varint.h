@@ -3,9 +3,11 @@
 #include "Deserialized.h"
 #include "WireType.h"
 
-#include <cstddef> // std::byte
+#include <bit>
+#include <cstddef>
 #include <cstdint>
 #include <span>
+#include <stdexcept>
 #include <vector>
 
 namespace proto {
@@ -41,19 +43,40 @@ class Varint {
     constexpr void set_value(std::uint64_t value) noexcept { m_value = value; }
 
     [[nodiscard]] constexpr std::vector<std::byte> serialize() const {
+        std::vector<std::byte> buffer;
+        buffer.resize(size());
+        serialize(buffer);
+        return buffer;
+    }
+
+    constexpr std::size_t serialize(std::span<std::byte> buffer) const {
+        if (buffer.size() < size()) {
+            throw std::runtime_error("Not enough space in provided span");
+        }
+
         constexpr std::byte continue_mask{0b1000'0000};
         constexpr std::byte value_mask{0b0111'1111};
         auto value = m_value;
-        std::vector<std::byte> result;
+        std::size_t num_bytes_written{0};
         do {
             std::byte byte = static_cast<std::byte>(value) & value_mask;
             value >>= 7;
             if (value != 0) {
                 byte |= continue_mask;
             }
-            result.push_back(byte);
+            buffer[num_bytes_written] = byte;
+            num_bytes_written++;
         } while (value != 0);
-        return result;
+        return num_bytes_written;
+    }
+
+    [[nodiscard]] constexpr std::size_t size() const noexcept {
+        // special case
+        if (m_value == 0) {
+            return 1;
+        }
+        // 7 bits per byte
+        return (std::bit_width(m_value) + 6) / 7;
     }
 
   private:

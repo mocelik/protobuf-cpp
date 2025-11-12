@@ -4,6 +4,7 @@
 #include "Field.h"
 
 #include <iostream>
+#include <stdexcept>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -64,7 +65,8 @@ void assign_to_index(const T &value, Tuple &tuple) {
         std::get<I>(tuple) = ElemT{value.value()};
     } else {
         /* Unable to assign/construct: ignore */
-        throw "Unexpected type at provided index";
+        throw std::logic_error(
+            "Tried to construct a field from an incompatible type");
     }
 }
 

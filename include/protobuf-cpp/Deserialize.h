@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <ranges>
 #include <span>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 
@@ -34,7 +35,7 @@ template <typename T> T deserialize(const std::span<const std::byte> data) {
         auto deserialized_key =
             Varint::deserialize(data | std::views::drop(total_bytes_read));
         if (deserialized_key.num_bytes_read == 0) {
-            throw "Error parsing varint for key";
+            throw std::runtime_error("Error parsing varint for key");
         }
         total_bytes_read += deserialized_key.num_bytes_read;
 
@@ -52,7 +53,7 @@ template <typename T> T deserialize(const std::span<const std::byte> data) {
             auto deserialized_value =
                 Varint::deserialize(data | std::views::drop(total_bytes_read));
             if (deserialized_value.num_bytes_read == 0) {
-                throw "Error parsing varint for value";
+                throw std::runtime_error("Error parsing varint for value");
             }
             total_bytes_read += deserialized_value.num_bytes_read;
             // Varint::value() returns the raw integer type expected by members
@@ -63,7 +64,7 @@ template <typename T> T deserialize(const std::span<const std::byte> data) {
             auto deserialized_value = Fixint<std::uint64_t>::deserialize(
                 data | std::views::drop(deserialized_key.num_bytes_read));
             if (deserialized_value.num_bytes_read == 0) {
-                throw "Error parsing fixint64 for value";
+                throw std::runtime_error("Error parsing fixint64 for value");
             }
             total_bytes_read += deserialized_value.num_bytes_read;
             set(field_number, deserialized_value.value.value(), member_types);
@@ -73,7 +74,7 @@ template <typename T> T deserialize(const std::span<const std::byte> data) {
             auto deserialized_value = Varlen::deserialize(
                 data | std::views::drop(deserialized_key.num_bytes_read));
             if (deserialized_value.num_bytes_read == 0) {
-                throw "Error parsing Varlen for value";
+                throw std::runtime_error("Error parsing Varlen for value");
             }
             total_bytes_read += deserialized_value.num_bytes_read;
             // Convert Varlen to a vector of bytes before setting the member
@@ -87,7 +88,7 @@ template <typename T> T deserialize(const std::span<const std::byte> data) {
             auto deserialized_value = Fixint<std::uint32_t>::deserialize(
                 data | std::views::drop(deserialized_key.num_bytes_read));
             if (deserialized_value.num_bytes_read == 0) {
-                throw "Error parsing fixint32 for value";
+                throw std::runtime_error("Error parsing fixint32 for value");
             }
             total_bytes_read += deserialized_value.num_bytes_read;
             set(field_number, deserialized_value.value.value(), member_types);

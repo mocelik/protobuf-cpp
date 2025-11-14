@@ -2,9 +2,10 @@
 
 #include "Field.h"
 #include "Fixint.h"
-#include "Record.h"
+#include "Key.h"
 #include "Varint.h"
 #include "Varlen.h"
+#include "WireType.h"
 
 #include <cstddef>
 #include <ranges>
@@ -89,6 +90,8 @@ constexpr Obj deserialize(std::span<const std::byte> data) {
                              typename Obj::members{});
             break;
         }
+        default:
+            throw std::runtime_error("Invalid Wire Type");
         }
     }
 

@@ -55,7 +55,11 @@ template <typename NumericType> class Fixint {
     template <typename T>
         requires std::is_arithmetic_v<T>
     [[nodiscard]] constexpr T as() const noexcept {
-        return static_cast<T>(m_value);
+        if constexpr (std::is_floating_point_v<T>) {
+            return std::bit_cast<T>(m_value);
+        } else {
+            return static_cast<T>(m_value);
+        }
     }
 
     constexpr void set_value(NumericType value) noexcept { m_value = value; }

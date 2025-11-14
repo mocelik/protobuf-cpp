@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <iosfwd>
 
 namespace proto {
 enum class WireType : std::uint8_t {
@@ -11,4 +12,6 @@ enum class WireType : std::uint8_t {
     // END_GROUP [[deprecated]] = 4,
     FIXED32 = 5 // fixed32, sfixed32, float
 };
-}
+
+std::ostream &operator<<(std::ostream &, WireType);
+} // namespace proto

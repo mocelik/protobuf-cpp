@@ -9,6 +9,7 @@
 #include <cstring>
 #include <limits>
 #include <span>
+#include <stdexcept>
 #include <type_traits>
 
 namespace proto {
@@ -51,13 +52,33 @@ template <typename NumericType> class Fixint {
         return m_value;
     }
 
+    template <typename T>
+        requires std::is_arithmetic_v<T>
+    [[nodiscard]] constexpr T as() const noexcept {
+        if constexpr (std::is_floating_point_v<T>) {
+            return std::bit_cast<T>(m_value);
+        } else {
+            return static_cast<T>(m_value);
+        }
+    }
+
     constexpr void set_value(NumericType value) noexcept { m_value = value; }
 
-    [[nodiscard]] std::array<std::byte, kfixed_size>
-    serialize() const noexcept {
-        std::array<std::byte, kfixed_size> result;
-        std::memcpy(result.data(), &m_value, kfixed_size);
-        return result;
+    constexpr std::size_t serialize(std::span<std::byte> buffer) const {
+        if (buffer.size() < size()) {
+            throw std::runtime_error("Buffer too small to serialize Fixint");
+        }
+
+        FixedType value = std::bit_cast<FixedType>(m_value);
+        for (int i = 0; i < kfixed_size; i++) {
+            buffer[i] = static_cast<std::byte>(value);
+            value >>= 8;
+        }
+        return kfixed_size;
+    }
+
+    [[nodiscard]] static constexpr std::size_t size() noexcept {
+        return kfixed_size;
     }
 
   private:

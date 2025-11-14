@@ -1,6 +1,7 @@
-#include "protobuf-cpp/Varint.h"
+#include <protobuf-cpp/Utils.h>
+#include <protobuf-cpp/Varint.h>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include <algorithm>
 #include <array>
@@ -30,20 +31,20 @@ static_assert(max_values[9] == std::numeric_limits<std::uint64_t>::max());
  */
 TEST(Varint, serialized_varint_encoded_size) {
 
-    ASSERT_EQ(proto::Varint(0).serialize().size(), 1);
+    ASSERT_EQ(proto::Varint{0}.size(), 1);
 
     std::ranges::for_each(max_values, [](const auto &value) {
         static int num_bytes = 1;
-        ASSERT_EQ(proto::Varint(value).serialize().size(), num_bytes);
+        ASSERT_EQ(proto::Varint{value}.size(), num_bytes);
         num_bytes++;
     });
 
-    std::for_each(
-        max_values.begin(), max_values.end() - 1, [](const auto &value) {
-            static int num_bytes = 2;
-            ASSERT_EQ(proto::Varint(value + 1).serialize().size(), num_bytes);
-            num_bytes++;
-        });
+    std::for_each(max_values.begin(), max_values.end() - 1,
+                  [](const auto &value) {
+                      static int num_bytes = 2;
+                      ASSERT_EQ(proto::Varint{value + 1}.size(), num_bytes);
+                      num_bytes++;
+                  });
 }
 
 /**
@@ -54,14 +55,14 @@ TEST(Varint, serialized_varint_encoded_value) {
 
     // Check the 0-case
     {
-        auto serialized = proto::Varint(0).serialize();
+        auto serialized = proto::serialize(proto::Varint{0});
         ASSERT_EQ(serialized.size(), 1);
         ASSERT_EQ(serialized[0], std::byte{0});
     }
 
     // Check the transition points
     std::ranges::for_each(max_values, [](const auto value) constexpr {
-        auto serialized = proto::Varint(value).serialize();
+        auto serialized = proto::serialize(proto::Varint{value});
         std::for_each(
             serialized.begin(), serialized.end() - 1,
             [](const auto &byte) { ASSERT_EQ(byte, std::byte{0b1111'1111}); });
@@ -86,11 +87,11 @@ TEST(Varint, deserialize_varint) {
 
     // The maximum values for each varint size
     std::ranges::for_each(max_values, [](const auto &value) {
-        auto serialized = proto::Varint(value).serialize();
+        auto serialized = proto::serialize(proto::Varint{value});
         auto deserialized = proto::Varint::deserialize(serialized);
         ASSERT_EQ(deserialized.value.value(), value);
 
-        serialized = proto::Varint(value + 1).serialize();
+        serialized = proto::serialize(proto::Varint{value + 1});
         deserialized = proto::Varint::deserialize(serialized);
         ASSERT_EQ(deserialized.value.value(), value + 1);
 
@@ -103,7 +104,7 @@ TEST(Varint, deserialize_varint) {
  */
 TEST(Varint, deserialized_num_bytes_read) {
     for (std::size_t num_bytes = 0; auto v : max_values) {
-        auto serialized = proto::Varint(v).serialize();
+        auto serialized = proto::serialize(proto::Varint{v});
         auto deserialized = proto::Varint::deserialize(serialized);
         ASSERT_EQ(deserialized.value.value(), v);
         ASSERT_EQ(deserialized.num_bytes_read, serialized.size());

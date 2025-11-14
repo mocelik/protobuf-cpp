@@ -1,25 +1,20 @@
 #pragma once
 
+#include "Concepts.h"
 #include "Deserialized.h"
 #include "Field.h"
 #include "Fixint.h"
 #include "Key.h"
 #include "Varint.h"
 #include "WireType.h"
-#include "protobuf-cpp/Deserialized.h"
 
 #include <concepts>
 #include <cstdint>
+#include <ranges>
+#include <stdexcept>
 #include <type_traits>
 
 namespace proto {
-
-template <class T>
-concept Wirable = requires {
-    { T::k_wire_type } -> std::convertible_to<WireType>;
-    { std::declval<T>().serialize() };
-    { T::deserialize(std::declval<std::span<const std::byte>>()) };
-};
 
 template <Wirable Type> class Record {
   public:
@@ -36,6 +31,11 @@ template <Wirable Type> class Record {
             return Deserialized<Record>{Record{Field{}, Type{}}, 0};
         }
 
+        if (Key{deserialized_key.value}.wire_type() != Type::k_wire_type) {
+            throw std::runtime_error(
+                "Attempted to deserialize the wrong type!");
+        }
+
         auto deserialized_value =
             Type::deserialize(data.subspan(deserialized_key.num_bytes_read));
 
@@ -47,13 +47,16 @@ template <Wirable Type> class Record {
                                         deserialized_value.num_bytes_read};
     }
 
-    [[nodiscard]] constexpr std::vector<std::byte> serialize() const {
-        auto serialized_key = Varint{m_key.value()}.serialize();
-        auto serialized_value = m_value.serialize();
+    constexpr std::size_t serialize(std::span<std::byte> buffer) const {
+        if (buffer.size() < size()) {
+            throw std::runtime_error("Buffer too small to serialize Record");
+        }
 
-        serialized_key.insert(serialized_key.end(), serialized_value.begin(),
-                              serialized_value.end());
-        return serialized_key;
+        Varint key_varint{m_key.value()};
+        auto num_bytes_written = key_varint.serialize(buffer);
+        num_bytes_written +=
+            m_value.serialize(buffer | std::views::drop(num_bytes_written));
+        return num_bytes_written;
     }
 
     [[nodiscard]] constexpr Key key() const noexcept { return m_key; }
@@ -64,6 +67,10 @@ template <Wirable Type> class Record {
         return m_key.wire_type();
     }
     [[nodiscard]] constexpr Type value() const noexcept { return m_value; }
+
+    [[nodiscard]] constexpr std::size_t size() const noexcept {
+        return Varint{m_key.value()}.size() + m_value.size();
+    }
 
   private:
     Key m_key;

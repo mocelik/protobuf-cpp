@@ -1,6 +1,9 @@
+file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS "*.cpp")
+
 add_library(protobuf-cpp SHARED
-  Varint.cpp
+  ${SRCS}
 )
+
 
 target_include_directories(protobuf-cpp
   PUBLIC

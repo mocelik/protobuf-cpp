@@ -56,8 +56,7 @@ template <typename T> T deserialize(const std::span<const std::byte> data) {
                 throw std::runtime_error("Error parsing varint for value");
             }
             total_bytes_read += deserialized_value.num_bytes_read;
-            // Varint::value() returns the raw integer type expected by members
-            set(field_number, deserialized_value.value.value(), member_types);
+            set(field_number, deserialized_value.value, member_types);
             break;
         }
         case WireType::FIXED64: {

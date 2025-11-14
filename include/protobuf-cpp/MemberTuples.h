@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "Concepts.h"
 #include "Field.h"
 
 #include <iostream>
@@ -53,7 +54,9 @@ void assign_to_index(const T &value, Tuple &tuple) {
     using ElemT = std::remove_cvref_t<
         std::tuple_element_t<I, std::remove_cvref_t<Tuple>>>;
     using InnerT = typename inner_value_type<T>::type;
-    if constexpr (std::is_convertible_v<T, ElemT>) {
+    if constexpr (InterpretableAs<T, ElemT>) {
+        std::get<I>(tuple) = value.template as<ElemT>();
+    } else if constexpr (std::is_convertible_v<T, ElemT>) {
         std::get<I>(tuple) = static_cast<ElemT>(value);
     } else if constexpr (!std::is_same_v<InnerT, void> &&
                          std::is_convertible_v<InnerT, ElemT>) {

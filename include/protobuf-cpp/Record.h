@@ -1,12 +1,12 @@
 #pragma once
 
+#include "Concepts.h"
 #include "Deserialized.h"
 #include "Field.h"
 #include "Fixint.h"
 #include "Key.h"
 #include "Varint.h"
 #include "WireType.h"
-#include "protobuf-cpp/Deserialized.h"
 
 #include <concepts>
 #include <cstdint>
@@ -15,12 +15,6 @@
 #include <type_traits>
 
 namespace proto {
-
-template <class T>
-concept Wirable = requires {
-    { T::k_wire_type } -> std::convertible_to<WireType>;
-    { T::deserialize(std::declval<std::span<const std::byte>>()) };
-};
 
 template <Wirable Type> class Record {
   public:
@@ -35,6 +29,11 @@ template <Wirable Type> class Record {
         auto deserialized_key = Varint::deserialize(data);
         if (deserialized_key.num_bytes_read == 0) {
             return Deserialized<Record>{Record{Field{}, Type{}}, 0};
+        }
+
+        if (Key{deserialized_key.value}.wire_type() != Type::k_wire_type) {
+            throw std::runtime_error(
+                "Attempted to deserialize the wrong type!");
         }
 
         auto deserialized_value =

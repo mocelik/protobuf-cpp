@@ -52,6 +52,12 @@ template <typename NumericType> class Fixint {
         return m_value;
     }
 
+    template <typename T>
+        requires std::is_arithmetic_v<T>
+    [[nodiscard]] constexpr T as() const noexcept {
+        return static_cast<T>(m_value);
+    }
+
     constexpr void set_value(NumericType value) noexcept { m_value = value; }
 
     constexpr std::size_t serialize(std::span<std::byte> buffer) const {

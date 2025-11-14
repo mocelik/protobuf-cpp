@@ -4,6 +4,7 @@
 #include "WireType.h"
 
 #include <bit>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -18,6 +19,12 @@ class Varint {
 
     constexpr Varint() = default;
     constexpr explicit Varint(std::uint64_t value) noexcept : m_value(value) {}
+
+    template <typename T>
+        requires std::is_integral_v<T>
+    T as() const {
+        return m_value;
+    }
 
     [[nodiscard]] constexpr static Deserialized<Varint>
     deserialize(std::span<const std::byte> data) noexcept {

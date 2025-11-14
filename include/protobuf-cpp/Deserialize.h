@@ -1,11 +1,10 @@
 #pragma once
 
 #include "Field.h"
-#include "MemberTuples.h"
+#include "Fixint.h"
 #include "Record.h"
 #include "Varint.h"
 #include "Varlen.h"
-#include "protobuf-cpp/Fixint.h"
 
 #include <cstddef>
 #include <ranges>
@@ -16,19 +15,16 @@
 
 namespace proto {
 
-template <typename T, typename Tuple, std::size_t... Is>
-T make_from_tuple_impl(const Tuple &values, std::index_sequence<Is...>) {
-    return T{std::get<Is>(values)...};
-}
+template <auto MemberPtr, typename Obj, typename T>
+constexpr void set_if_correct_type(Obj &obj, const T &value);
 
-template <typename T, typename Tuple> T make_from_tuple(const Tuple &values) {
-    constexpr auto N = std::tuple_size_v<Tuple>;
-    return make_from_tuple_impl<T>(values, std::make_index_sequence<N>{});
-}
+template <typename Obj, typename T, auto... MemberPtrs>
+constexpr void set_field_in_obj(Field field, Obj &obj, const T &value,
+                                Members<MemberPtrs...>);
 
-template <typename T> T deserialize(const std::span<const std::byte> data) {
-    decltype(T::members) member_ptrs = T::members;
-    member_types_tuple_t<decltype(T::members)> member_types;
+template <typename Obj>
+constexpr Obj deserialize(std::span<const std::byte> data) {
+    Obj obj;
 
     std::size_t total_bytes_read = 0;
     while (total_bytes_read < data.size()) {
@@ -42,8 +38,7 @@ template <typename T> T deserialize(const std::span<const std::byte> data) {
         Key key(deserialized_key.value);
         Field field_number = key.field_number();
         // Recall that field number is 1-indexed, so we use > instead of >= here
-        if (std::to_underlying(field_number) >
-            std::tuple_size_v<decltype(member_ptrs)>) {
+        if (std::to_underlying(field_number) > Obj::members::s_num_elems) {
             // Unknown field, skip
             continue;
         }
@@ -56,7 +51,8 @@ template <typename T> T deserialize(const std::span<const std::byte> data) {
                 throw std::runtime_error("Error parsing varint for value");
             }
             total_bytes_read += deserialized_value.num_bytes_read;
-            set(field_number, deserialized_value.value, member_types);
+            set_field_in_obj(field_number, obj, deserialized_value.value,
+                             typename Obj::members{});
             break;
         }
         case WireType::FIXED64: {
@@ -66,7 +62,8 @@ template <typename T> T deserialize(const std::span<const std::byte> data) {
                 throw std::runtime_error("Error parsing fixint64 for value");
             }
             total_bytes_read += deserialized_value.num_bytes_read;
-            set(field_number, deserialized_value.value.value(), member_types);
+            set_field_in_obj(field_number, obj, deserialized_value.value,
+                             typename Obj::members{});
             break;
         }
         case WireType::LEN: {
@@ -76,10 +73,8 @@ template <typename T> T deserialize(const std::span<const std::byte> data) {
                 throw std::runtime_error("Error parsing Varlen for value");
             }
             total_bytes_read += deserialized_value.num_bytes_read;
-            // Convert Varlen to a vector of bytes before setting the member
-            auto t = deserialized_value.value.value();
-            std::vector<std::byte> tmp(t.begin(), t.end());
-            set(field_number, tmp, member_types);
+            set_field_in_obj(field_number, obj, deserialized_value.value,
+                             typename Obj::members{});
             break;
         }
 
@@ -90,12 +85,46 @@ template <typename T> T deserialize(const std::span<const std::byte> data) {
                 throw std::runtime_error("Error parsing fixint32 for value");
             }
             total_bytes_read += deserialized_value.num_bytes_read;
-            set(field_number, deserialized_value.value.value(), member_types);
+            set_field_in_obj(field_number, obj, deserialized_value.value,
+                             typename Obj::members{});
             break;
         }
         }
     }
 
-    return make_from_tuple<T>(member_types);
+    return obj;
 }
+
+template <auto MemberPtr, typename Obj, typename T>
+constexpr void set_if_correct_type(Obj &obj, const T &value) {
+    using MemberType = typename std::remove_cvref_t<decltype(obj.*MemberPtr)>;
+
+    if constexpr (InterpretableAs<T, MemberType>) {
+        obj.*MemberPtr = value.template as<MemberType>();
+    } else {
+        // ABI error - e.g. trying to set a span from a fixint
+        throw std::logic_error(
+            "Tried to construct a field from an incompatible type");
+    }
+}
+
+template <typename Obj, typename T, auto... MemberPtrs>
+constexpr void set_field_in_obj(Field field, Obj &obj, const T &value,
+                                Members<MemberPtrs...>) {
+
+    // convert 1-indexed `field` to 0-index for variadic template index
+    const std::size_t idx = std::to_underlying(field) - 1;
+
+    // ABI error
+    if (idx >= sizeof...(MemberPtrs)) {
+        throw std::logic_error("Trying to set a field that doesn't exist");
+    }
+
+    // Call set_if_correct_type on the MemberPtr corresponding to the field
+    [&]<std::size_t... Is>(std::index_sequence<Is...>) {
+        ((Is == idx ? (set_if_correct_type<MemberPtrs>(obj, value)) : void{}),
+         ...);
+    }((std::make_index_sequence<sizeof...(MemberPtrs)>{}));
+}
+
 } // namespace proto

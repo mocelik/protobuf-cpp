@@ -1,7 +1,7 @@
-#include "protobuf-cpp/Fixint.h"
-#include "protobuf-cpp/Utils.h"
+#include <protobuf-cpp/Fixint.h>
+#include <protobuf-cpp/Utils.h>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include <algorithm>
 #include <array>

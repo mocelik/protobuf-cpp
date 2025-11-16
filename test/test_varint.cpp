@@ -111,3 +111,40 @@ TEST(Varint, deserialized_num_bytes_read) {
         ASSERT_EQ(deserialized.num_bytes_read, ++num_bytes);
     }
 }
+
+TEST(Varint, ZigzagEncoding) {
+    ASSERT_EQ(proto::Varint{uint8_t{0}}.as<int8_t>(), 0);
+    ASSERT_EQ(proto::Varint{uint8_t{1}}.as<int8_t>(), -1);
+    ASSERT_EQ(proto::Varint{uint8_t{2}}.as<int8_t>(), 1);
+    ASSERT_EQ(proto::Varint{uint8_t{3}}.as<int8_t>(), -2);
+    ASSERT_EQ(proto::Varint{uint8_t{4}}.as<int8_t>(), 2);
+
+    ASSERT_EQ(proto::Varint{int8_t{0}}.as<uint8_t>(), 0);
+    ASSERT_EQ(proto::Varint{int8_t{-1}}.as<uint8_t>(), 1);
+    ASSERT_EQ(proto::Varint{int8_t{1}}.as<uint8_t>(), 2);
+    ASSERT_EQ(proto::Varint{int8_t{-2}}.as<uint8_t>(), 3);
+    ASSERT_EQ(proto::Varint{int8_t{2}}.as<uint8_t>(), 4);
+    ASSERT_EQ(proto::Varint{int8_t{-3}}.as<uint8_t>(), 5);
+    ASSERT_EQ(proto::Varint{int8_t{3}}.as<uint8_t>(), 6);
+    ASSERT_EQ(proto::Varint{int8_t{-4}}.as<uint8_t>(), 7);
+    ASSERT_EQ(proto::Varint{int8_t{4}}.as<uint8_t>(), 8);
+
+    for (int16_t i = 0; i < 256; i++) {
+        ASSERT_EQ(proto::Varint{int16_t{i}}.as<int16_t>(), i);
+    }
+    for (uint16_t i = 0; i < 256; i++) {
+        ASSERT_EQ(proto::Varint{uint16_t{i}}.as<uint16_t>(), i);
+    }
+
+    ASSERT_EQ(proto::Varint{std::numeric_limits<std::int64_t>::max()}
+                  .as<std::int64_t>(),
+              std::numeric_limits<std::int64_t>::max());
+
+    ASSERT_EQ(proto::Varint{std::numeric_limits<std::int64_t>::min()}
+                  .as<std::int64_t>(),
+              std::numeric_limits<std::int64_t>::min());
+
+    ASSERT_EQ(proto::Varint{std::numeric_limits<std::uint64_t>::max()}
+                  .as<std::uint64_t>(),
+              std::numeric_limits<std::uint64_t>::max());
+}

@@ -45,7 +45,8 @@ class Varint {
         std::size_t num_bytes_read = 0;
         int shift = 0;
         for (auto byte : data) {
-            result |= (static_cast<std::uint64_t>(byte & value_mask) << shift);
+            result |=
+                (std::to_integer<std::uint64_t>(byte & value_mask) << shift);
             num_bytes_read++;
             if (!bool(byte & continue_mask)) {
                 break;

@@ -7,8 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <print>
-
 TEST(TrivialStruct, singleint_serialize_deserialize) {
     static_assert(std::is_trivially_copyable_v<test::SingleInt>,
                   "SingleInt should be trivially copyable");

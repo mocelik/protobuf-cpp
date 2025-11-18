@@ -23,6 +23,7 @@ class Varint {
         requires std::is_integral_v<T>
     constexpr explicit Varint(T value) noexcept
         : m_value(std::is_signed_v<T>
+                      // Zigzag encode
                       ? (value << 1) ^ (value >> ((sizeof(T) * 8) - 1))
                       : value) {}
 
@@ -30,6 +31,7 @@ class Varint {
         requires std::is_integral_v<T>
     T as() const {
         if constexpr (std::is_signed_v<T>) {
+            // Zigzag decode
             return (m_value >> 1) ^ (-(m_value & 1));
         }
 

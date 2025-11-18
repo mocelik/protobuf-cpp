@@ -26,6 +26,8 @@ constexpr std::array<std::uint64_t, 10> max_values = {
 static_assert(max_values[9] == std::numeric_limits<std::uint64_t>::max());
 } // namespace
 
+static_assert(proto::Varint::k_wire_type == proto::WireType::VARINT);
+
 /**
  * Verify that encoding a varint produces the expected number of bytes.
  */

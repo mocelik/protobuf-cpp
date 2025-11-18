@@ -9,6 +9,9 @@
 #include <numbers>
 #include <ranges>
 
+static_assert(proto::Fixint32::k_wire_type == proto::WireType::FIXED32);
+static_assert(proto::Fixint64::k_wire_type == proto::WireType::FIXED64);
+
 /**
  * Verify that encoding a Fixint only and always uses 4 bytes
  */

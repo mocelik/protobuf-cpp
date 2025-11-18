@@ -58,7 +58,7 @@ constexpr Obj deserialize(std::span<const std::byte> data) {
         }
         case WireType::FIXED64: {
             auto deserialized_value = Fixint<std::uint64_t>::deserialize(
-                data | std::views::drop(deserialized_key.num_bytes_read));
+                data | std::views::drop(total_bytes_read));
             if (deserialized_value.num_bytes_read == 0) {
                 throw std::runtime_error("Error parsing fixint64 for value");
             }
@@ -68,8 +68,8 @@ constexpr Obj deserialize(std::span<const std::byte> data) {
             break;
         }
         case WireType::LEN: {
-            auto deserialized_value = Varlen::deserialize(
-                data | std::views::drop(deserialized_key.num_bytes_read));
+            auto deserialized_value =
+                Varlen::deserialize(data | std::views::drop(total_bytes_read));
             if (deserialized_value.num_bytes_read == 0) {
                 throw std::runtime_error("Error parsing Varlen for value");
             }
@@ -81,7 +81,7 @@ constexpr Obj deserialize(std::span<const std::byte> data) {
 
         case WireType::FIXED32: {
             auto deserialized_value = Fixint<std::uint32_t>::deserialize(
-                data | std::views::drop(deserialized_key.num_bytes_read));
+                data | std::views::drop(total_bytes_read));
             if (deserialized_value.num_bytes_read == 0) {
                 throw std::runtime_error("Error parsing fixint32 for value");
             }

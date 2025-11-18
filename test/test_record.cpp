@@ -10,7 +10,7 @@
 #include <cstddef>
 
 TEST(Record, construct_record_with_varint_payload) {
-    constexpr auto value = 150;
+    constexpr auto value = 150u;
     constexpr proto::Field field{1};
     constexpr auto wire_type = proto::WireType::VARINT;
     constexpr proto::Key key(field, wire_type);

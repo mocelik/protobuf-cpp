@@ -18,12 +18,25 @@ class Varint {
     static constexpr WireType k_wire_type = WireType::VARINT;
 
     constexpr Varint() = default;
-    constexpr explicit Varint(std::uint64_t value) noexcept : m_value(value) {}
+
+    template <typename T>
+        requires std::is_integral_v<T>
+    constexpr explicit Varint(T value) noexcept
+        : m_value(std::is_signed_v<T>
+                      // Zigzag encode
+                      ? (value << 1) ^ (value >> ((sizeof(T) * 8) - 1))
+                      : value) {}
 
     template <typename T>
         requires std::is_integral_v<T>
     T as() const {
-        return m_value;
+        if constexpr (std::is_signed_v<T>) {
+            // Zigzag decode
+            return (m_value >> 1) ^ (-(m_value & 1));
+        }
+
+        // Cast to suppress warnings about precision loss
+        return static_cast<T>(m_value);
     }
 
     [[nodiscard]] constexpr static Deserialized<Varint>
@@ -34,7 +47,8 @@ class Varint {
         std::size_t num_bytes_read = 0;
         int shift = 0;
         for (auto byte : data) {
-            result |= (static_cast<std::uint64_t>(byte & value_mask) << shift);
+            result |=
+                (std::to_integer<std::uint64_t>(byte & value_mask) << shift);
             num_bytes_read++;
             if (!bool(byte & continue_mask)) {
                 break;

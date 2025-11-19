@@ -1,6 +1,5 @@
 # Prefer a system-installed GTest (specific minimum version), otherwise fetch it
 find_package(GTest 1.12 QUIET)
-
 if (NOT GTest_FOUND)
 	include(FetchContent)
 	FetchContent_Declare(
@@ -10,15 +9,33 @@ if (NOT GTest_FOUND)
 	)
 	FetchContent_MakeAvailable(googletest)
 endif()
-
 include(GoogleTest)
 
+
+# Generate the pb.cc and pb.h files from the .proto files
+find_package(Protobuf REQUIRED)
+file(GLOB_RECURSE PROTO_FILES CONFIGURE_DEPENDS "proto/*.proto")
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
+
+
+# Create test executable
+file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS "*.cpp")
+add_executable(test_protobuf-cpp ${TEST_SOURCES} ${PROTO_SRCS})
+target_compile_options(test_protobuf-cpp PRIVATE "--coverage")
+target_include_directories(test_protobuf-cpp PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_link_options(test_protobuf-cpp PRIVATE "--coverage")
+target_link_libraries(test_protobuf-cpp PRIVATE protobuf-cpp gtest_main protobuf::libprotobuf)
+gtest_discover_tests(test_protobuf-cpp)
+
+
+# Setup code coverage target
 # Download CodeCoverage.cmake module
 set(CODE_COVERAGE_MODULE_URL
     "https://raw.githubusercontent.com/bilke/cmake-modules/d1e13f6c51554554d391fe6ac48f087aac9f41d8/CodeCoverage.cmake"
 )
-set(CODE_COVERAGE_MODULE_LOCAL "${CMAKE_BINARY_DIR}/cmake/CodeCoverage.cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}/cmake")
 
+set(CODE_COVERAGE_MODULE_LOCAL "${CMAKE_BINARY_DIR}/cmake/CodeCoverage.cmake")
 # Only download if not already present
 if(NOT EXISTS "${CODE_COVERAGE_MODULE_LOCAL}")
   file(DOWNLOAD
@@ -33,21 +50,10 @@ if(NOT EXISTS "${CODE_COVERAGE_MODULE_LOCAL}")
   endif()
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}/cmake")
 set(CODE_COVERAGE_VERBOSE ON)
 include(CodeCoverage)
 
-# Create test executable
-file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS "*.cpp")
-add_executable(test_protobuf-cpp ${TEST_SOURCES})
-target_compile_options(test_protobuf-cpp PRIVATE "--coverage")
-target_link_options(test_protobuf-cpp PRIVATE "--coverage")
-target_link_libraries(test_protobuf-cpp PRIVATE protobuf-cpp gtest_main)
-gtest_discover_tests(test_protobuf-cpp)
-
 set(GCOVR_ADDITIONAL_ARGS "--sonarqube" "coverage.xml" "--html-nested" "coverage.html")
-
-# Setup code coverage target
 setup_target_for_coverage_gcovr_xml(
     NAME coverage
     EXECUTABLE test_protobuf-cpp
